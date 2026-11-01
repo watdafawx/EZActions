@@ -3,8 +3,19 @@ plugins {
     id 'maven-publish'
 }
 
+// Fork: mod version = <fork_base>.<fork_revision> from fork.properties (upstream's version= stays untouched).
+def forkProps = new Properties()
+rootProject.file('fork.properties').withInputStream { forkProps.load(it) }
+version = "${forkProps.fork_base}.${forkProps.fork_revision}"
+
 base {
     archivesName = "${mod_id}-${project.name}-${minecraft_version}"
+}
+
+// Fork: jars named <mod_id>-<version>+<loader>-<mc>.jar (afterEvaluate so loader build files can't override it).
+afterEvaluate {
+    base.archivesName = mod_id
+    tasks.withType(org.gradle.jvm.tasks.Jar).configureEach { archiveVersion = "${project.version}+${project.name}-${minecraft_version}" }
 }
 
 java {
